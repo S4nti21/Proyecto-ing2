@@ -1,127 +1,80 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  StyleSheet,
-  Text,
   View,
-  TextInput,
-  TouchableOpacity,
+  Text,
   ImageBackground,
-} from 'react-native';
-import { BlurView } from 'expo-blur';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/AppNavigator";
+import { colors } from "../theme/colors";
+import InputField from "../components/InputField";
+import CustomButton from "../components/CustomButton";
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
+type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 export default function LoginScreen({ navigation }: Props) {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    console.log('Correo:', email);
-    console.log('Contraseña:', password);
-
-    navigation.navigate('Home');
-  };
+  function handleLogin(): void {
+    // Por ahora vamos directo a las pestañas
+    navigation.replace("MainTabs");
+  }
 
   return (
     <ImageBackground
-      source={require('../assets/Fondo cortado.jpg')}
-      style={styles.background}
-      resizeMode="cover"
+      source={require("../assets/Fondo_cortado.jpg")}
+      style={styles.bg}
     >
       <View style={styles.overlay}>
-        <BlurView intensity={80} tint="dark" style={styles.loginBox}>
-          <Text style={styles.title}>Iniciar sesión</Text>
+        <Text style={styles.title}>Iniciar sesión</Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Correo electrónico"
-            placeholderTextColor="#ccc"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
+        <InputField
+          placeholder="Correo electrónico"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <InputField
+          placeholder="Contraseña"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Contraseña"
-            placeholderTextColor="#ccc"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+        <CustomButton title="Ingresar" onPress={handleLogin} />
 
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Ingresar</Text>
+        <Text style={styles.footer}>
+          ¿No tienes una cuenta?{" "}
+          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+            <Text style={styles.link}>Regístrate aquí</Text>
           </TouchableOpacity>
-
-          <Text style={styles.footerText}>
-            ¿No tienes una cuenta?{' '}
-            <Text
-              style={styles.linkText}
-            >
-              Regístrate aquí
-            </Text>
-          </Text>
-        </BlurView>
+        </Text>
       </View>
     </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-  },
+  bg: { flex: 1, resizeMode: "cover" },
   overlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-  },
-  loginBox: {
-    width: '85%',
-    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
     padding: 25,
-    alignItems: 'center',
   },
   title: {
-    color: '#fff',
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 25,
+    color: colors.text,
+    fontSize: 28,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 30,
   },
-  input: {
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    color: '#fff',
-    padding: 15,
-    borderRadius: 15,
-    marginVertical: 10,
-    fontSize: 16,
+  footer: {
+    color: colors.text,
+    textAlign: "center",
+    marginTop: 15,
   },
-  button: {
-    width: '100%',
-    backgroundColor: '#fff',
-    paddingVertical: 15,
-    borderRadius: 15,
-    marginTop: 20,
-  },
-  buttonText: {
-    textAlign: 'center',
-    color: '#000',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  footerText: {
-    color: '#fff',
-    marginTop: 20,
-    fontSize: 14,
-  },
-  linkText: {
-    color: '#00bfff',
-    fontWeight: 'bold',
-  },
+  link: { color: colors.accent, fontWeight: "bold" },
 });
