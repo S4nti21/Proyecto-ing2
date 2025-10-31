@@ -40,7 +40,7 @@ const alojamientos = [
   },
 ];
 
-export default function DashboardScreen({ navigation }: Props) {
+export default function PanelScreen({ navigation }: Props) {
   const renderItem = ({ item }: any) => (
     <View style={styles.card}>
       <Image source={item.imagen} style={styles.cardImage} />
@@ -53,7 +53,9 @@ export default function DashboardScreen({ navigation }: Props) {
     <ImageBackground
       source={require("../assets/Fondo_cortado.jpg")}
       style={styles.background}
-      blurRadius={3}>
+      blurRadius={2}
+    >
+
       <ScrollView style={styles.container}>
         {/* HEADER */}
         <View style={styles.header}>
@@ -104,7 +106,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    paddingVertical: 15,
+    paddingVertical: 30,
     marginBottom: 10,
   },
   headerTitle: {

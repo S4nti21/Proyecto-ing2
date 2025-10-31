@@ -14,13 +14,11 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 export default function AlojamientoDetalle({ route, navigation }: any) {
   const { alojamiento } = route.params;
 
-  // Estados de fechas
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [tipoFecha, setTipoFecha] = useState<"desde" | "hasta" | null>(null);
   const [fechaDesde, setFechaDesde] = useState<Date | null>(null);
   const [fechaHasta, setFechaHasta] = useState<Date | null>(null);
 
-  // Mostrar y ocultar picker
   const mostrarPicker = (tipo: "desde" | "hasta") => {
     setTipoFecha(tipo);
     setPickerVisible(true);
@@ -42,9 +40,7 @@ export default function AlojamientoDetalle({ route, navigation }: any) {
       blurRadius={3}
     >
       <View style={styles.screen}>
-        {/* Contenido scrollable */}
         <ScrollView style={styles.container}>
-          {/* Imagen principal */}
           <View style={styles.imageContainer}>
             <Image
               source={require("../assets/8aa8209e-5435-4a34-9c91-6e04ae1cc7f5.png")}
@@ -52,8 +48,6 @@ export default function AlojamientoDetalle({ route, navigation }: any) {
               resizeMode="cover"
             />
           </View>
-
-          {/* Contenido */}
           <View style={styles.content}>
             <Text style={styles.title}>{alojamiento.nombre}</Text>
             <Text style={styles.description}>
@@ -70,13 +64,10 @@ export default function AlojamientoDetalle({ route, navigation }: any) {
               <Text>Piscina</Text>
               <Text>Spa</Text>
             </View>
-
-            {/* Caja de reserva */}
             <View style={styles.box}>
               <Text style={styles.price}>${alojamiento.precio}/Noche</Text>
 
               <View style={styles.row}>
-                {/* Fecha Desde */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Desde</Text>
                   <TouchableOpacity
@@ -89,7 +80,6 @@ export default function AlojamientoDetalle({ route, navigation }: any) {
                   </TouchableOpacity>
                 </View>
 
-                {/* Fecha Hasta */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Hasta</Text>
                   <TouchableOpacity
@@ -110,7 +100,6 @@ export default function AlojamientoDetalle({ route, navigation }: any) {
           </View>
         </ScrollView>
 
-        {/* Picker de fecha */}
         <DateTimePickerModal
           isVisible={isPickerVisible}
           mode="date"

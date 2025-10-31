@@ -15,7 +15,7 @@ type TabParamList = {
   Home: undefined;
   Perfil: undefined;
   Panel: undefined;
-  AlojamientoDetalles: { alojamiento: any }; // 👈 agregamos el destino
+  AlojamientoDetalles: { alojamiento: any };
 };
 
 type Props = {
@@ -55,10 +55,10 @@ export default function HomeScreen({ navigation }: Props) {
     <ImageBackground
       source={require("../assets/Fondo_cortado.jpg")}
       style={styles.background}
-      blurRadius={3}
+      blurRadius={2}
     >
+
       <View style={styles.overlay}>
-        {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.filterButton} onPress={toggleMenu}>
             <Text style={styles.filterText}>Filtros</Text>
@@ -71,7 +71,6 @@ export default function HomeScreen({ navigation }: Props) {
           />
         </View>
 
-        {/* MENÚ DE FILTROS */}
         {menuVisible && (
           <Animated.View
             style={[styles.menu, { height: menuHeight, top: 100, left: 20 }]}
@@ -95,7 +94,6 @@ export default function HomeScreen({ navigation }: Props) {
           </Animated.View>
         )}
 
-        {/* LISTA DE ALOJAMIENTOS */}
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
@@ -136,7 +134,6 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
   },
   header: {
     position: "absolute",

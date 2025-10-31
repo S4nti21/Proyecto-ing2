@@ -29,28 +29,19 @@ export default function ProfileScreen() {
 
   const guardarPerfil = () => {
     console.log({ nombre, apellido, dni, imagen });
-    alert("Perfil guardado correctamente ✅");
+    alert("Perfil guardado correctamente");
   };
 
   const cerrarSesion = () => {
-    alert("Sesión cerrada 🚪");
-    // Aquí podrías hacer navigation.navigate('Login') o limpiar AsyncStorage
+    alert("Sesión cerrada");
   };
 
   return (
     <ImageBackground
       source={require("../assets/Fondo_cortado.jpg")}
       style={styles.background}
-      blurRadius={3}
+      blurRadius={2}
     >
-      {/* Header con logo alineado a la derecha */}
-      <View style={styles.header}>
-        <Image
-          source={require("../assets/logo3.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.card}>
@@ -83,8 +74,6 @@ export default function ProfileScreen() {
           />
 
           <Text style={styles.label}>Foto de perfil</Text>
-
-          {/* Vista previa de la imagen o placeholder */}
           <View style={styles.imageContainer}>
             {imagen ? (
               <Image source={{ uri: imagen }} style={styles.profileImage} />
@@ -119,13 +108,6 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: "cover",
   },
-  header: {
-    paddingTop: StatusBar.currentHeight || 40,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    justifyContent: "flex-end", // 🔹 Mueve el logo a la derecha
-    alignItems: "center",
-  },
   logo: {
     width: 120,
     height: 50,
@@ -135,6 +117,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+    paddingTop: 50,
   },
   card: {
     width: "100%",
@@ -165,7 +148,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
 
-  // 🔹 Imagen de perfil redonda
   imageContainer: {
     alignItems: "center",
   },

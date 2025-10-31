@@ -9,6 +9,8 @@ import { RootStackParamList } from "../navigation/AppNavigator";
 type Props = NativeStackScreenProps<RootStackParamList, "Register">;
 
 export default function RegisterScreen({ navigation }: Props) {
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -20,6 +22,8 @@ export default function RegisterScreen({ navigation }: Props) {
       <View style={styles.overlay}>
         <Text style={styles.title}>Crear cuenta</Text>
 
+        <InputField placeholder="Nombre" value={nombre} onChangeText={setNombre} />
+        <InputField placeholder="Apellido" value={apellido} onChangeText={setApellido} secureTextEntry />
         <InputField placeholder="Correo electrónico" value={email} onChangeText={setEmail} />
         <InputField placeholder="Contraseña" value={password} onChangeText={setPassword} secureTextEntry />
 
