@@ -1,24 +1,68 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList, ScrollView, ImageBackground } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  FlatList,
+  ScrollView,
+  ImageBackground,
+  Alert,
+} from "react-native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { colors } from "../theme/colors";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 
-// Configuración del idioma del calendario
-LocaleConfig.locales['es'] = {
-  monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-  monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-  dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
-  dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
-  today: 'Hoy'
+LocaleConfig.locales["es"] = {
+  monthNames: [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ],
+  monthNamesShort: [
+    "Ene",
+    "Feb",
+    "Mar",
+    "Abr",
+    "May",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dic",
+  ],
+  dayNames: [
+    "Domingo",
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+  ],
+  dayNamesShort: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+  today: "Hoy",
 };
-LocaleConfig.defaultLocale = 'es';
+LocaleConfig.defaultLocale = "es";
 
 type TabParamList = {
   Home: undefined;
   Perfil: undefined;
   Panel: undefined;
   AgregarAlojamientoScreen: undefined;
+  EditarAlojamientoScreen: { alojamiento: any };
 };
 
 type Props = {
@@ -27,26 +71,75 @@ type Props = {
 
 const alojamientos = [
   {
-    id: '1',
-    nombre: 'Matrimonial',
-    ubicacion: 'Santa Fe',
-    imagen: require('../assets/8aa8209e-5435-4a34-9c91-6e04ae1cc7f5.png'),
+    id: "1",
+    nombre: "Matrimonial",
+    ubicacion: "Santa Fe",
+    imagen: require("../assets/8aa8209e-5435-4a34-9c91-6e04ae1cc7f5.png"),
   },
   {
-    id: '2',
-    nombre: 'Monoambiente',
-    ubicacion: 'Santa Fe',
-    imagen: require('../assets/8aa8209e-5435-4a34-9c91-6e04ae1cc7f5.png'),
+    id: "2",
+    nombre: "Monoambiente",
+    ubicacion: "Santa Fe",
+    imagen: require("../assets/8aa8209e-5435-4a34-9c91-6e04ae1cc7f5.png"),
   },
 ];
 
 export default function PanelScreen({ navigation }: Props) {
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const handlePress = (id: string) => {
+    setSelected(selected === id ? null : id);
+  };
+
+  const handleDelete = (alojamiento: any) => {
+    Alert.alert(
+      "Eliminar alojamiento",
+      `¿Seguro que deseas eliminar "${alojamiento.nombre}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => {
+            console.log("Alojamiento eliminado:", alojamiento.id);
+            Alert.alert("Eliminado", "El alojamiento fue eliminado correctamente");
+          },
+        },
+      ]
+    );
+  };
+
   const renderItem = ({ item }: any) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={() => handlePress(item.id)}
+      style={styles.card}
+    >
       <Image source={item.imagen} style={styles.cardImage} />
-      <Text style={styles.cardTitle}>{item.nombre}</Text>
-      <Text style={styles.cardSubtitle}>{item.ubicacion}</Text>
-    </View>
+
+      {selected === item.id && (
+        <View style={styles.overlay}>
+          <TouchableOpacity
+            style={styles.overlayButton}
+            onPress={() => navigation.navigate("EditarAlojamientoScreen", { alojamiento: item })}
+          >
+            <Text style={styles.overlayButtonText}>Editar alojamiento</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.overlayButtonD}
+            onPress={() => handleDelete(item)}
+          >
+            <Text style={styles.overlayButtonText}>Eliminar alojamiento</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <View style={styles.cardInfo}>
+        <Text style={styles.cardTitle}>{item.nombre}</Text>
+        <Text style={styles.cardSubtitle}>{item.ubicacion}</Text>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -55,13 +148,7 @@ export default function PanelScreen({ navigation }: Props) {
       style={styles.background}
       blurRadius={2}
     >
-
       <ScrollView style={styles.container}>
-        {/* HEADER */}
-        <View style={styles.header}>
-        </View>
-
-        {/* BOTÓN AGREGAR */}
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => navigation.navigate("AgregarAlojamientoScreen")}
@@ -69,30 +156,50 @@ export default function PanelScreen({ navigation }: Props) {
           <Text style={styles.addButtonText}>+ Agregar alojamiento</Text>
         </TouchableOpacity>
 
-        {/* CONTENIDO */}
         <View style={styles.content}>
           <FlatList
             data={alojamientos}
             renderItem={renderItem}
-            keyExtractor={item => item.id}
+            keyExtractor={(item) => item.id}
             horizontal
             style={{ marginBottom: 20 }}
             contentContainerStyle={{ gap: 10 }}
           />
 
           <Calendar
-            markingType={'period'}
+            markingType={"period"}
             markedDates={{
-              '2025-10-03': { startingDay: true, color: '#FFA500', textColor: 'white' },
-              '2025-10-04': { endingDay: true, color: '#FFA500', textColor: 'white' },
-              '2025-10-07': { startingDay: true, color: '#FFA500', textColor: 'white' },
-              '2025-10-09': { endingDay: true, color: '#FFA500', textColor: 'white' },
+              "2025-10-03": {
+                startingDay: true,
+                color: "#FFA500",
+                textColor: "white",
+              },
+              "2025-10-04": {
+                endingDay: true,
+                color: "#FFA500",
+                textColor: "white",
+              },
+              "2025-10-07": {
+                startingDay: true,
+                color: "#FFA500",
+                textColor: "white",
+              },
+              "2025-10-09": {
+                endingDay: true,
+                color: "#FFA500",
+                textColor: "white",
+              },
             }}
-            style={{ borderRadius: 10, borderWidth: 1, borderColor: '#ddd', padding: 10 }}
+            style={{
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: "#ddd",
+              padding: 10,
+            }}
           />
         </View>
       </ScrollView>
-    </ImageBackground >
+    </ImageBackground>
   );
 }
 
@@ -104,27 +211,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-  },
-  header: {
-    paddingVertical: 30,
-    marginBottom: 10,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: colors.primary,
+    paddingTop: 70,
   },
   addButton: {
     backgroundColor: colors.primary,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     marginBottom: 20,
   },
   addButtonText: {
-    color: 'black',
-    fontWeight: 'bold',
+    color: "black",
+    fontWeight: "bold",
     fontSize: 16,
   },
   content: {
@@ -132,25 +231,52 @@ const styles = StyleSheet.create({
   },
   card: {
     width: 200,
-    borderRadius: 10,
-    backgroundColor: 'white',
-    overflow: 'hidden',
+    borderRadius: 15,
+    backgroundColor: "white",
+    overflow: "hidden",
     elevation: 3,
   },
   cardImage: {
-    width: '100%',
-    height: 120,
+    width: "100%",
+    height: 130,
+  },
+  cardInfo: {
+    padding: 10,
   },
   cardTitle: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
-    marginTop: 5,
-    marginHorizontal: 10,
   },
   cardSubtitle: {
     fontSize: 14,
-    marginHorizontal: 10,
-    marginBottom: 10,
-    color: '#555',
+    color: "#666",
+  },
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 130,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  overlayButton: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginVertical: 5,
+  },
+  overlayButtonD: {
+    backgroundColor: "rgba(255, 0, 0, 0.2)",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginVertical: 5,
+  },
+  overlayButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });

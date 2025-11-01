@@ -11,6 +11,7 @@ import ProfileScreen from "../screens/ProfileScreen";
 import AlojamientoDetalle from "../screens/AlojamientoDetalle";
 import PanelScreen from "../screens/PanelScreen";
 import AgregarAlojamientoScreen from "../screens/AgregarAlojamientoScreen";
+import EditarAlojamientoScreen from "../screens/EditarAlojamientoScreen";
 
 export type RootStackParamList = {
   Login: undefined;
@@ -58,6 +59,7 @@ export default function AppNavigator() {
         <Stack.Screen name="AlojamientoDetalles" component={AlojamientoDetalle} />
         <Stack.Screen name="PanelScreen" component={PanelScreen}/>
         <Stack.Screen name="AgregarAlojamientoScreen" component={AgregarAlojamientoScreen}/>
+        <Stack.Screen name="EditarAlojamientoScreen" component={EditarAlojamientoScreen}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

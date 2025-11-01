@@ -19,7 +19,6 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState("");
 
   function handleLogin(): void {
-    // Por ahora vamos directo a las pestañas
     navigation.replace("MainTabs");
   }
 
