@@ -5,13 +5,34 @@ import InputField from "../components/InputField";
 import CustomButton from "../components/CustomButton";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
+import { crearUsuario } from "../api/usuarioService";
+import { RolUsuario } from "../models/Usuario";
+import { Picker } from '@react-native-picker/picker';
 
 type Props = NativeStackScreenProps<RootStackParamList, "Register">;
 
 export default function RegisterScreen({ navigation }: Props) {
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rol, setRol] = useState<RolUsuario>("HUESPED");
 
+  const handleRegister = async () => {
+    try {
+      const nuevoUsuario = await crearUsuario({
+        nombre,
+        apellido,
+        email,
+        contraseña: password,
+        rol, // ⚠️ enviamos el rol obligatorio
+      });
+      console.log("Usuario creado:", nuevoUsuario);
+      navigation.navigate("Login");
+    } catch (err) {
+      console.error("Error al registrar usuario:", err);
+    }
+  };
   return (
     <ImageBackground
       source={require("../assets/Fondo_cortado.jpg")}
@@ -20,10 +41,13 @@ export default function RegisterScreen({ navigation }: Props) {
       <View style={styles.overlay}>
         <Text style={styles.title}>Crear cuenta</Text>
 
+        <InputField placeholder="Nombre" value={nombre} onChangeText={setNombre} />
+        <InputField placeholder="Apellido" value={apellido} onChangeText={setApellido}/>
         <InputField placeholder="Correo electrónico" value={email} onChangeText={setEmail} />
         <InputField placeholder="Contraseña" value={password} onChangeText={setPassword} secureTextEntry />
 
-        <CustomButton title="Registrarme" onPress={() => navigation.navigate("Login")} />
+        <CustomButton title="Registrarme" onPress={handleRegister} />
+
 
         <Text style={styles.footer}>
           ¿Ya tienes una cuenta?{" "}
@@ -32,6 +56,10 @@ export default function RegisterScreen({ navigation }: Props) {
           </TouchableOpacity>
         </Text>
       </View>
+      <Picker selectedValue={rol} onValueChange={value => setRol(value)}>
+        <Picker.Item label="Huésped" value="HUESPED" />
+        <Picker.Item label="Anfitrión" value="ANFITRION" />
+      </Picker>
     </ImageBackground>
   );
 }

@@ -8,8 +8,10 @@ import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import HomeScreen from "../screens/HomeScreen";
 import ProfileScreen from "../screens/ProfileScreen";
-import DashboardScreen from "../screens/DashboardScreen";
 import AlojamientoDetalle from "../screens/AlojamientoDetalle";
+import PanelScreen from "../screens/PanelScreen";
+import AgregarAlojamientoScreen from "../screens/AgregarAlojamientoScreen";
+import EditarAlojamientoScreen from "../screens/EditarAlojamientoScreen";
 
 export type RootStackParamList = {
   Login: undefined;
@@ -40,7 +42,7 @@ function MainTabs() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Panel" component={DashboardScreen} />
+      <Tab.Screen name="Panel" component={PanelScreen} />
       <Tab.Screen name="Perfil" component={ProfileScreen} />
     </Tab.Navigator>
   );
@@ -55,6 +57,9 @@ export default function AppNavigator() {
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="AlojamientoDetalles" component={AlojamientoDetalle} />
+        <Stack.Screen name="PanelScreen" component={PanelScreen}/>
+        <Stack.Screen name="AgregarAlojamientoScreen" component={AgregarAlojamientoScreen}/>
+        <Stack.Screen name="EditarAlojamientoScreen" component={EditarAlojamientoScreen}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,4 +1,3 @@
-import { crearHospedaje } from "../api/hospedajesService";
 import React, { useState } from "react";
 import {
     View,
@@ -11,11 +10,10 @@ import {
     ImageBackground,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { Picker } from "@react-native-picker/picker"; // 👈 importamos el selector
 
 export default function AgregarAlojamientoScreen({ navigation }: any) {
     const [nombre, setNombre] = useState("");
-    const [tipo, setTipo] = useState(""); // almacenará el id o nombre del tipo seleccionado
+    const [tipo, setTipo] = useState("");
     const [direccion, setDireccion] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [imagen, setImagen] = useState<string | null>(null);
@@ -29,15 +27,6 @@ export default function AgregarAlojamientoScreen({ navigation }: any) {
         spa: false,
         desayuno: false,
     });
-
-    // 🔹 Tipos fijos de alojamiento
-    const tiposAlojamiento = [
-        { id: 1, nombre: "Hotel" },
-        { id: 2, nombre: "Cabaña" },
-        { id: 3, nombre: "Departamento" },
-        { id: 4, nombre: "Hostel" },
-        { id: 5, nombre: "Casa" },
-    ];
 
     const toggleServicio = (key: keyof typeof servicios) => {
         setServicios({ ...servicios, [key]: !servicios[key] });
@@ -55,43 +44,18 @@ export default function AgregarAlojamientoScreen({ navigation }: any) {
         }
     };
 
-    const guardarAlojamiento = async () => {
-        try {
-            if (!nombre || !tipo || !direccion || !descripcion) {
-                alert("Por favor completá todos los campos obligatorios.");
-                return;
-            }
-
-            const nuevoAlojamiento = {
-                nombre,
-                descripcion,
-                direccion,
-                imagen,
-                tipoHospedaje: { id: parseInt(tipo) }, // 👈 id del tipo seleccionado
-                servicios: Object.entries(servicios)
-                    .filter(([_, value]) => value)
-                    .map(([key]) => {
-                        const mapServicios: any = {
-                            wifi: 1,
-                            tv: 2,
-                            aire: 3,
-                            pileta: 4,
-                            cochera: 5,
-                            spa: 6,
-                            desayuno: 7,
-                        };
-                        return { id: mapServicios[key] };
-                    }),
-            };
-
-            const respuesta = await crearHospedaje(nuevoAlojamiento);
-            console.log("Hospedaje creado:", respuesta);
-            alert("Alojamiento guardado correctamente ✅");
-            navigation.goBack();
-        } catch (error) {
-            console.error("Error al guardar alojamiento:", error);
-            alert("Error al guardar alojamiento ❌");
-        }
+    const guardarAlojamiento = () => {
+        const nuevoAlojamiento = {
+            nombre,
+            tipo,
+            direccion,
+            descripcion,
+            servicios,
+            imagen,
+        };
+        console.log("Alojamiento guardado:", nuevoAlojamiento);
+        alert("Alojamiento guardado correctamente");
+        navigation.goBack();
     };
 
     return (
@@ -100,9 +64,10 @@ export default function AgregarAlojamientoScreen({ navigation }: any) {
             style={styles.background}
             blurRadius={2}
         >
+
             <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
                 <View style={styles.card}>
-                    <Text style={styles.title}>Agregar alojamiento</Text>
+                    <Text style={styles.title}>Editar alojamiento</Text>
 
                     <Text style={styles.label}>Nombre de alojamiento</Text>
                     <TextInput
@@ -113,18 +78,12 @@ export default function AgregarAlojamientoScreen({ navigation }: any) {
                     />
 
                     <Text style={styles.label}>Tipo de alojamiento</Text>
-                    <View style={styles.pickerContainer}>
-                        <Picker
-                            selectedValue={tipo}
-                            onValueChange={(itemValue) => setTipo(itemValue)}
-                            style={styles.picker}
-                        >
-                            <Picker.Item label="Seleccionar tipo..." value="" />
-                            {tiposAlojamiento.map((t) => (
-                                <Picker.Item key={t.id} label={t.nombre} value={t.id.toString()} />
-                            ))}
-                        </Picker>
-                    </View>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Ej: Cabaña, Hotel, Departamento..."
+                        value={tipo}
+                        onChangeText={setTipo}
+                    />
 
                     <Text style={styles.label}>Dirección</Text>
                     <TextInput
@@ -185,7 +144,7 @@ export default function AgregarAlojamientoScreen({ navigation }: any) {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
-        </ImageBackground>
+        </ImageBackground >
     );
 }
 
@@ -230,16 +189,6 @@ const styles = StyleSheet.create({
     textArea: {
         height: 80,
         textAlignVertical: "top",
-    },
-    pickerContainer: {
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 10,
-        backgroundColor: "#f9f9f9",
-        overflow: "hidden",
-    },
-    picker: {
-        height: 50,
     },
     checkboxGroup: {
         flexDirection: "row",

@@ -11,6 +11,7 @@ import { RootStackParamList } from "../navigation/AppNavigator";
 import { colors } from "../theme/colors";
 import InputField from "../components/InputField";
 import CustomButton from "../components/CustomButton";
+import { login } from "../api/authService";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -18,9 +19,17 @@ export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  function handleLogin(): void {
-    // Por ahora vamos directo a las pestañas
-    navigation.replace("MainTabs");
+  async function handleLogin(): Promise<void> {
+    try {
+      const resultado = await login(email, password);
+      if (resultado === "Usuario correcto") {
+        navigation.replace("MainTabs");
+      } else {
+        alert(resultado);
+      }
+    } catch (error: any) {
+      alert(error.message);
+    }
   }
 
   return (
