@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,8 +8,10 @@ import {
   Image,
   ImageBackground,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { obtenerHospedajes } from "../api/hospedajesService";
 
 type TabParamList = {
   Home: undefined;
@@ -25,31 +27,40 @@ type Props = {
 export default function HomeScreen({ navigation }: Props) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuHeight] = useState(new Animated.Value(0));
+  const [alojamientos, setAlojamientos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 🔹 Cargar alojamientos desde API
+  useEffect(() => {
+    const fetchAlojamientos = async () => {
+      try {
+        const data = await obtenerHospedajes();
+        setAlojamientos(data);
+      } catch (error) {
+        console.error("Error cargando alojamientos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAlojamientos();
+  }, []);
 
   const toggleMenu = () => {
     if (menuVisible) {
       Animated.timing(menuHeight, {
-        toValue: 0,
+        toValue: 0, 
         duration: 200,
         useNativeDriver: false,
       }).start(() => setMenuVisible(false));
     } else {
       setMenuVisible(true);
       Animated.timing(menuHeight, {
-        toValue: 150,
+        toValue: 275,
         duration: 200,
         useNativeDriver: false,
       }).start();
     }
   };
-
-  const alojamientos = [
-    { id: 1, nombre: "Tucuman", tipo: "Dept. monoambiente", precio: 40000 },
-    { id: 2, nombre: "Cordoba", tipo: "Dept. 2 ambientes", precio: 55000 },
-    { id: 3, nombre: "Rosario", tipo: "Dept. moderno", precio: 48000 },
-    { id: 4, nombre: "Mendoza", tipo: "Dept. premium", precio: 65000 },
-    { id: 5, nombre: "Salta", tipo: "Dept. clásico", precio: 42000 },
-  ];
 
   return (
     <ImageBackground
@@ -57,71 +68,72 @@ export default function HomeScreen({ navigation }: Props) {
       style={styles.background}
       blurRadius={2}
     >
-
       <View style={styles.overlay}>
+        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.filterButton} onPress={toggleMenu}>
             <Text style={styles.filterText}>Filtros</Text>
           </TouchableOpacity>
-
-          <Image
-            source={require("../assets/logo3.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <Image source={require("../assets/logo3.png")} style={styles.logo} resizeMode="contain" />
         </View>
 
+        {/* Menu de filtros */}
         {menuVisible && (
-          <Animated.View
-            style={[styles.menu, { height: menuHeight, top: 100, left: 20 }]}
-          >
+          <Animated.View style={[styles.menu, { height: menuHeight, top: 100, left: 20,}]}>
             <TouchableOpacity style={styles.menuItem} onPress={toggleMenu}>
-              <Text style={styles.menuText}>Ocupados</Text>
+              <Text style={styles.menuText}>Hotel</Text>
             </TouchableOpacity>
-
             <TouchableOpacity style={styles.menuItem} onPress={toggleMenu}>
-              <Text style={styles.menuText}>Desocupados</Text>
+              <Text style={styles.menuText}>Cabaña</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.menuItem, styles.menuItemDisabled]}
-              onPress={toggleMenu}
-            >
-              <Text style={[styles.menuText, { color: "#aaa" }]}>
-                Mostrar todos
-              </Text>
+            <TouchableOpacity style={styles.menuItem} onPress={toggleMenu}>
+              <Text style={styles.menuText}>Departamento</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={toggleMenu}>
+              <Text style={styles.menuText}>Hostel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={toggleMenu}>
+              <Text style={styles.menuText}>Casa</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.menuItem, styles.menuItemDisabled]} onPress={toggleMenu}>
+              <Text style={[styles.menuText, { color: "#aaa" }]}>Mostrar todos</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {alojamientos.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.card}
-              activeOpacity={0.8}
-              onPress={() =>
-                navigation.navigate("AlojamientoDetalles", { alojamiento: item })
-              }
-            >
-              <Image
-                source={require("../assets/8aa8209e-5435-4a34-9c91-6e04ae1cc7f5.png")}
-                style={styles.image}
-              />
-              <View style={styles.info}>
-                <Text style={styles.title}>{item.nombre}</Text>
-                <Text style={styles.subtitle}>{item.tipo}</Text>
-                <Text style={styles.price}>
-                  <Text style={{ fontWeight: "bold" }}>${item.precio}</Text>{" "}
-                  Noche
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {/* Scroll de alojamientos */}
+        {loading ? (
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 150 }}>
+            <ActivityIndicator size="large" color="#000" />
+          </View>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {alojamientos.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.card}
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate("AlojamientoDetalles", { alojamiento: item })}
+              >
+                {item.imagen ? (
+                  <Image source={{ uri: item.imagen }} style={styles.image} />
+                ) : (
+                  <Image source={require("../assets/logo3.png")} style={styles.image} />
+                )}
+                <View style={styles.info}>
+                  <Text style={styles.title}>{item.nombre}</Text>
+                  <Text style={styles.subtitle}>{item.tipoHospedaje?.nombre}</Text>
+                  <Text style={styles.price}>
+                    <Text style={{ fontWeight: "bold" }}>${item.precio_por_noche || 0}</Text> Noche
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
       </View>
     </ImageBackground>
   );
