@@ -28,14 +28,16 @@ export default function HomeScreen({ navigation }: Props) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuHeight] = useState(new Animated.Value(0));
   const [alojamientos, setAlojamientos] = useState<any[]>([]);
+  const [filteredAlojamientos, setFilteredAlojamientos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tipoFiltro, setTipoFiltro] = useState<string | null>(null);
 
-  // 🔹 Cargar alojamientos desde API
   useEffect(() => {
     const fetchAlojamientos = async () => {
       try {
         const data = await obtenerHospedajes();
         setAlojamientos(data);
+        setFilteredAlojamientos(data); // inicialmente sin filtro
       } catch (error) {
         console.error("Error cargando alojamientos:", error);
       } finally {
@@ -48,7 +50,7 @@ export default function HomeScreen({ navigation }: Props) {
   const toggleMenu = () => {
     if (menuVisible) {
       Animated.timing(menuHeight, {
-        toValue: 0, 
+        toValue: 0,
         duration: 200,
         useNativeDriver: false,
       }).start(() => setMenuVisible(false));
@@ -62,6 +64,21 @@ export default function HomeScreen({ navigation }: Props) {
     }
   };
 
+  const aplicarFiltro = (tipo: string | null) => {
+    setTipoFiltro(tipo);
+    setMenuVisible(false);
+    Animated.timing(menuHeight, { toValue: 0, duration: 200, useNativeDriver: false }).start();
+    
+    if (tipo) {
+      const filtrados = alojamientos.filter(a => a.tipoHospedaje?.nombre === tipo);
+      setFilteredAlojamientos(filtrados);
+    } else {
+      setFilteredAlojamientos(alojamientos);
+    }
+  };
+
+  const tipos = ["Hotel", "Cabaña", "Departamento", "Hostel", "Casa"];
+
   return (
     <ImageBackground
       source={require("../assets/Fondo_cortado.jpg")}
@@ -69,39 +86,34 @@ export default function HomeScreen({ navigation }: Props) {
       blurRadius={2}
     >
       <View style={styles.overlay}>
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.filterButton} onPress={toggleMenu}>
-            <Text style={styles.filterText}>Filtros</Text>
+            <Text style={styles.filterText}>{tipoFiltro ?? "Filtros"}</Text>
           </TouchableOpacity>
           <Image source={require("../assets/logo3.png")} style={styles.logo} resizeMode="contain" />
         </View>
-
-        {/* Menu de filtros */}
         {menuVisible && (
-          <Animated.View style={[styles.menu, { height: menuHeight, top: 100, left: 20,}]}>
-            <TouchableOpacity style={styles.menuItem} onPress={toggleMenu}>
-              <Text style={styles.menuText}>Hotel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={toggleMenu}>
-              <Text style={styles.menuText}>Cabaña</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={toggleMenu}>
-              <Text style={styles.menuText}>Departamento</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={toggleMenu}>
-              <Text style={styles.menuText}>Hostel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={toggleMenu}>
-              <Text style={styles.menuText}>Casa</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.menuItem, styles.menuItemDisabled]} onPress={toggleMenu}>
+          <Animated.View style={[styles.menu, { height: menuHeight, top: 100, left: 20 }]}>
+            {tipos.map((tipo) => (
+              <TouchableOpacity
+                key={tipo}
+                style={[
+                  styles.menuItem,
+                  tipoFiltro === tipo && { backgroundColor: "#ddd" },
+                ]}
+                onPress={() => aplicarFiltro(tipo)}
+              >
+                <Text style={styles.menuText}>{tipo}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={[styles.menuItem, styles.menuItemDisabled]}
+              onPress={() => aplicarFiltro(null)}
+            >
               <Text style={[styles.menuText, { color: "#aaa" }]}>Mostrar todos</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
-
-        {/* Scroll de alojamientos */}
         {loading ? (
           <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 150 }}>
             <ActivityIndicator size="large" color="#000" />
@@ -111,7 +123,7 @@ export default function HomeScreen({ navigation }: Props) {
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
           >
-            {alojamientos.map((item) => (
+            {filteredAlojamientos.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 style={styles.card}
@@ -140,13 +152,8 @@ export default function HomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    resizeMode: "cover",
-  },
-  overlay: {
-    flex: 1,
-  },
+  background: { flex: 1, resizeMode: "cover" },
+  overlay: { flex: 1 },
   header: {
     position: "absolute",
     top: 50,
@@ -157,73 +164,46 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 20,
   },
-  logo: {
-    width: 120,
-    height: 50,
+  logo: { 
+    width: 120, height: 50
+   },
+  filterButton: { 
+    backgroundColor: "white", paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10
+   },
+  filterText: { 
+    fontWeight: "600", fontSize: 16 
   },
-  filterButton: {
-    backgroundColor: "white",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+  menu: { 
+    position: "absolute", backgroundColor: "white", borderRadius: 12, overflow: "hidden", elevation: 5, zIndex: 15
+   },
+  menuItem: { 
+    padding: 12, borderBottomWidth: 1, borderBottomColor: "#eee" 
   },
-  filterText: {
-    fontWeight: "600",
-    fontSize: 16,
+  menuItemDisabled: { 
+    backgroundColor: "#f7f7f7"
+   },
+  menuText: { 
+    fontSize: 16
+   },
+  scrollContainer: { 
+    paddingTop: 140, paddingHorizontal: 20, paddingBottom: 40, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-around" 
   },
-  menu: {
-    position: "absolute",
-    backgroundColor: "white",
-    borderRadius: 12,
-    overflow: "hidden",
-    elevation: 5,
-    zIndex: 15,
+  card: { 
+    backgroundColor: "white", borderRadius: 16, width: "45%", marginBottom: 20, overflow: "hidden", elevation: 6
+   },
+  image: { 
+    height: 120, width: "100%"
+   },
+  info: { 
+    padding: 10 
   },
-  menuItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  menuItemDisabled: {
-    backgroundColor: "#f7f7f7",
-  },
-  menuText: {
-    fontSize: 16,
-  },
-  scrollContainer: {
-    paddingTop: 140,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-around",
-  },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    width: "45%",
-    marginBottom: 20,
-    overflow: "hidden",
-    elevation: 6,
-  },
-  image: {
-    height: 120,
-    width: "100%",
-  },
-  info: {
-    padding: 10,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000",
-  },
+  title: { 
+    fontSize: 16, fontWeight: "bold", color: "#000"
+   },
   subtitle: {
-    color: "#666",
-    marginBottom: 4,
-  },
-  price: {
-    fontSize: 14,
-    color: "#444",
+     color: "#666", marginBottom: 4
+     },
+  price: { 
+    fontSize: 14, color: "#444"
   },
 });

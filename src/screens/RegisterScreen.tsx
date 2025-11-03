@@ -25,7 +25,7 @@ export default function RegisterScreen({ navigation }: Props) {
         apellido,
         email,
         contraseña: password,
-        rol, // ⚠️ enviamos el rol obligatorio
+        rol,
       });
       console.log("Usuario creado:", nuevoUsuario);
       navigation.navigate("Login");
@@ -42,7 +42,7 @@ export default function RegisterScreen({ navigation }: Props) {
         <Text style={styles.title}>Crear cuenta</Text>
 
         <InputField placeholder="Nombre" value={nombre} onChangeText={setNombre} />
-        <InputField placeholder="Apellido" value={apellido} onChangeText={setApellido}/>
+        <InputField placeholder="Apellido" value={apellido} onChangeText={setApellido} />
         <InputField placeholder="Correo electrónico" value={email} onChangeText={setEmail} />
         <InputField placeholder="Contraseña" value={password} onChangeText={setPassword} secureTextEntry />
 
@@ -65,7 +65,9 @@ export default function RegisterScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  bg: { flex: 1 },
+  bg: {
+    flex: 1
+  },
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.7)",

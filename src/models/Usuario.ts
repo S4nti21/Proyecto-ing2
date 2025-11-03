@@ -1,4 +1,3 @@
-// src/models/Usuario.ts
 export type RolUsuario = "ANFITRION" | "HUESPED";
 
 export interface Usuario {
