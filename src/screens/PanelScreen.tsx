@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,47 +11,19 @@ import {
   Alert,
 } from "react-native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { colors } from "../theme/colors";
 import { Calendar, LocaleConfig } from "react-native-calendars";
+import { getHospedajesPorUsuario, eliminarHospedaje } from "../api/hospedajesService";
+import { getReservasPorUsuario } from "../api/reservaService";
 
 LocaleConfig.locales["es"] = {
   monthNames: [
-    "Enero",
-    "Febrero",
-    "Marzo",
-    "Abril",
-    "Mayo",
-    "Junio",
-    "Julio",
-    "Agosto",
-    "Septiembre",
-    "Octubre",
-    "Noviembre",
-    "Diciembre",
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
   ],
-  monthNamesShort: [
-    "Ene",
-    "Feb",
-    "Mar",
-    "Abr",
-    "May",
-    "Jun",
-    "Jul",
-    "Ago",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dic",
-  ],
-  dayNames: [
-    "Domingo",
-    "Lunes",
-    "Martes",
-    "Miércoles",
-    "Jueves",
-    "Viernes",
-    "Sábado",
-  ],
+  monthNamesShort: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+  dayNames: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
   dayNamesShort: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
   today: "Hoy",
 };
@@ -67,25 +39,62 @@ type TabParamList = {
 
 type Props = {
   navigation: BottomTabNavigationProp<TabParamList, "Panel">;
+  route: any;
 };
-
-const alojamientos = [
-  {
-    id: "1",
-    nombre: "Matrimonial",
-    ubicacion: "Santa Fe",
-    imagen: require("../assets/8aa8209e-5435-4a34-9c91-6e04ae1cc7f5.png"),
-  },
-  {
-    id: "2",
-    nombre: "Monoambiente",
-    ubicacion: "Santa Fe",
-    imagen: require("../assets/8aa8209e-5435-4a34-9c91-6e04ae1cc7f5.png"),
-  },
-];
 
 export default function PanelScreen({ navigation }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [alojamientos, setAlojamientos] = useState<any[]>([]);
+  const [markedDates, setMarkedDates] = useState<any>({});
+  const [usuarioId, setUsuarioId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchUsuario = async () => {
+      const idStr = await AsyncStorage.getItem("usuarioId");
+      if (idStr) setUsuarioId(parseInt(idStr));
+    };
+    fetchUsuario();
+  }, []);
+
+  useEffect(() => {
+    if (usuarioId) {
+      fetchAlojamientos();
+      fetchReservas();
+    }
+  }, [usuarioId]);
+
+  const fetchAlojamientos = async () => {
+    try {
+      const data = await getHospedajesPorUsuario(usuarioId!);
+      setAlojamientos(data);
+    } catch (error) {
+      console.error("Error al traer hospedajes:", error);
+    }
+  };
+
+  const fetchReservas = async () => {
+    try {
+      const reservas = await getReservasPorUsuario(usuarioId!);
+
+      const marcas: any = {};
+      reservas.forEach((reserva: any) => {
+        const start = reserva.fecha_check_in;
+        const end = reserva.fecha_check_out;
+
+        let current = new Date(start);
+        const last = new Date(end);
+        while (current <= last) {
+          const key = current.toISOString().split("T")[0];
+          marcas[key] = { color: "#FFA500", textColor: "white" };
+          current.setDate(current.getDate() + 1);
+        }
+      });
+
+      setMarkedDates(marcas);
+    } catch (error) {
+      console.error("Error al traer reservas:", error);
+    }
+  };
 
   const handlePress = (id: string) => {
     setSelected(selected === id ? null : id);
@@ -100,9 +109,16 @@ export default function PanelScreen({ navigation }: Props) {
         {
           text: "Eliminar",
           style: "destructive",
-          onPress: () => {
-            console.log("Alojamiento eliminado:", alojamiento.id);
-            Alert.alert("Eliminado", "El alojamiento fue eliminado correctamente");
+          onPress: async () => {
+            try {
+              await eliminarHospedaje(alojamiento.id);
+              Alert.alert("Éxito", "Alojamiento eliminado correctamente");
+              fetchAlojamientos();
+              fetchReservas();
+            } catch (error) {
+              console.error("Error al eliminar alojamiento:", error);
+              Alert.alert("Error", "No se pudo eliminar el alojamiento");
+            }
           },
         },
       ]
@@ -115,13 +131,15 @@ export default function PanelScreen({ navigation }: Props) {
       onPress={() => handlePress(item.id)}
       style={styles.card}
     >
-      <Image source={item.imagen} style={styles.cardImage} />
+      <Image source={{ uri: item.imagen }} style={styles.cardImage} />
 
       {selected === item.id && (
         <View style={styles.overlay}>
           <TouchableOpacity
             style={styles.overlayButton}
-            onPress={() => navigation.navigate("EditarAlojamientoScreen", { alojamiento: item })}
+            onPress={() =>
+              navigation.navigate("EditarAlojamientoScreen", { alojamiento: item })
+            }
           >
             <Text style={styles.overlayButtonText}>Editar alojamiento</Text>
           </TouchableOpacity>
@@ -137,7 +155,7 @@ export default function PanelScreen({ navigation }: Props) {
 
       <View style={styles.cardInfo}>
         <Text style={styles.cardTitle}>{item.nombre}</Text>
-        <Text style={styles.cardSubtitle}>{item.ubicacion}</Text>
+        <Text style={styles.cardSubtitle}>{item.direccion}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -160,7 +178,7 @@ export default function PanelScreen({ navigation }: Props) {
           <FlatList
             data={alojamientos}
             renderItem={renderItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id.toString()}
             horizontal
             style={{ marginBottom: 20 }}
             contentContainerStyle={{ gap: 10 }}
@@ -168,28 +186,7 @@ export default function PanelScreen({ navigation }: Props) {
 
           <Calendar
             markingType={"period"}
-            markedDates={{
-              "2025-10-03": {
-                startingDay: true,
-                color: "#FFA500",
-                textColor: "white",
-              },
-              "2025-10-04": {
-                endingDay: true,
-                color: "#FFA500",
-                textColor: "white",
-              },
-              "2025-10-07": {
-                startingDay: true,
-                color: "#FFA500",
-                textColor: "white",
-              },
-              "2025-10-09": {
-                endingDay: true,
-                color: "#FFA500",
-                textColor: "white",
-              },
-            }}
+            markedDates={markedDates}
             style={{
               borderRadius: 10,
               borderWidth: 1,
@@ -205,13 +202,10 @@ export default function PanelScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   background: {
-    flex: 1,
-    resizeMode: "cover",
+    flex: 1, resizeMode: "cover"
   },
   container: {
-    flex: 1,
-    padding: 20,
-    paddingTop: 70,
+    flex: 1, padding: 20, paddingTop: 70
   },
   addButton: {
     backgroundColor: colors.primary,
@@ -222,61 +216,36 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   addButtonText: {
-    color: "black",
-    fontWeight: "bold",
-    fontSize: 16,
+    color: "black", fontWeight: "bold", fontSize: 16
   },
   content: {
-    flex: 1,
+    flex: 1
   },
   card: {
-    width: 200,
-    borderRadius: 15,
-    backgroundColor: "white",
-    overflow: "hidden",
-    elevation: 3,
+    width: 200, borderRadius: 15, backgroundColor: "white", overflow: "hidden", elevation: 3
   },
   cardImage: {
-    width: "100%",
-    height: 130,
+    width: "100%", height: 130
   },
   cardInfo: {
-    padding: 10,
+    padding: 10
   },
   cardTitle: {
-    fontWeight: "bold",
-    fontSize: 16,
+    fontWeight: "bold", fontSize: 16
   },
   cardSubtitle: {
-    fontSize: 14,
-    color: "#666",
+    fontSize: 14, color: "#666"
   },
   overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 130,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    alignItems: "center",
-    justifyContent: "center",
+    position: "absolute", top: 0, left: 0, right: 0, height: 130, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center"
   },
   overlayButton: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginVertical: 5,
+    backgroundColor: "rgba(255,255,255,0.2)", paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, marginVertical: 5
   },
   overlayButtonD: {
-    backgroundColor: "rgba(255, 0, 0, 0.2)",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginVertical: 5,
+    backgroundColor: "rgba(255,0,0,0.2)", paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, marginVertical: 5
   },
   overlayButtonText: {
-    color: "white",
-    fontWeight: "bold",
+    color: "white", fontWeight: "bold"
   },
 });

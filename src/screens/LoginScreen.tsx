@@ -12,6 +12,7 @@ import { colors } from "../theme/colors";
 import InputField from "../components/InputField";
 import CustomButton from "../components/CustomButton";
 import { login } from "../api/authService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -22,10 +23,20 @@ export default function LoginScreen({ navigation }: Props) {
   async function handleLogin(): Promise<void> {
     try {
       const resultado = await login(email, password);
-      if (resultado === "Usuario correcto") {
-        navigation.replace("MainTabs");
+
+      if (resultado.mensaje === "Usuario correcto" && resultado.usuario) {
+        const { id, rol } = resultado.usuario;
+        await AsyncStorage.setItem("usuarioId", String(id));
+        await AsyncStorage.setItem("usuarioRol", rol);
+        if (rol === "ANFITRION") {
+          navigation.replace("MainTabs");
+        } else if (rol === "HUESPED") {
+          navigation.replace("ReservasTabs");
+        } else {
+          alert("Rol de usuario desconocido");
+        }
       } else {
-        alert(resultado);
+        alert(resultado.mensaje || "Email o contraseña incorrecta");
       }
     } catch (error: any) {
       alert(error.message);

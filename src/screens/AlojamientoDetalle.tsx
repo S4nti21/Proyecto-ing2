@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { ImageBackground, View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, StatusBar, ActivityIndicator } from "react-native";
+import {
+  ImageBackground,
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  ActivityIndicator,
+} from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { crearReserva } from "../api/reservaService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUsuarioPorId } from "../api/usuarioService";
 
 export default function AlojamientoDetalle({ route, navigation }: any) {
   const { alojamiento } = route.params;
@@ -11,16 +24,16 @@ export default function AlojamientoDetalle({ route, navigation }: any) {
   const [tipoFecha, setTipoFecha] = useState<"desde" | "hasta" | null>(null);
   const [fechaDesde, setFechaDesde] = useState<Date | null>(null);
   const [fechaHasta, setFechaHasta] = useState<Date | null>(null);
+  const [reservaResumen, setReservaResumen] = useState<any>(null);
 
-  // Traer datos del backend
   useEffect(() => {
     fetch(`http://192.168.0.27:8080/api/hospedaje/${alojamiento.id}`)
-      .then(res => res.json())
-      .then(resData => {
+      .then((res) => res.json())
+      .then((resData) => {
         setData(resData);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         setLoading(false);
       });
@@ -39,6 +52,46 @@ export default function AlojamientoDetalle({ route, navigation }: any) {
 
   const formatearFecha = (date: Date | null) =>
     date ? date.toLocaleDateString() : "dd/mm/aaaa";
+
+  const handleReservar = async () => {
+    if (!fechaDesde || !fechaHasta) {
+      alert("Por favor selecciona las fechas");
+      return;
+    }
+
+    try {
+      const usuarioIdStr = await AsyncStorage.getItem("usuarioId");
+      if (!usuarioIdStr) {
+        alert("Debes iniciar sesión para reservar");
+        return;
+      }
+
+      const usuarioId = Number(usuarioIdStr);
+
+      const reserva = {
+        alojamientoId: data.id,
+        usuarioId,
+        fecha_check_in: fechaDesde.toISOString(),
+        fecha_check_out: fechaHasta.toISOString(),
+      };
+
+      await crearReserva(reserva);
+
+      const usuario = await getUsuarioPorId(usuarioId);
+
+      setReservaResumen({
+        alojamientoNombre: data.nombre,
+        usuarioNombre: usuario?.nombre || "Usuario",
+        usuarioApellido: usuario?.apellido || "",
+        fechaDesde: fechaDesde.toLocaleDateString(),
+        fechaHasta: fechaHasta.toLocaleDateString(),
+      });
+
+    } catch (error) {
+      console.error(error);
+      alert("Error al realizar la reserva");
+    }
+  };
 
   if (loading) {
     return (
@@ -109,10 +162,22 @@ export default function AlojamientoDetalle({ route, navigation }: any) {
                 </View>
               </View>
 
-              <TouchableOpacity style={styles.button}>
+              <TouchableOpacity style={styles.button} onPress={handleReservar}>
                 <Text style={styles.buttonText}>Reservar</Text>
               </TouchableOpacity>
             </View>
+
+            {reservaResumen && (
+              <View style={styles.resumenBox}>
+                <Text style={styles.resumenTitle}>Resumen de la reserva</Text>
+                <Text>Alojamiento: {reservaResumen.alojamientoNombre}</Text>
+                <Text>
+                  Usuario: {reservaResumen.usuarioNombre} {reservaResumen.usuarioApellido}
+                </Text>
+                <Text>Desde: {reservaResumen.fechaDesde}</Text>
+                <Text>Hasta: {reservaResumen.fechaHasta}</Text>
+              </View>
+            )}
           </View>
         </ScrollView>
 
@@ -143,7 +208,6 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%", height: 220
-
   },
   content: {
     backgroundColor: "white", borderRadius: 16, marginHorizontal: 20, padding: 20, elevation: 3
@@ -159,13 +223,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontWeight: "bold", fontSize: 16, marginBottom: 10
-
   },
   services: {
     marginBottom: 25, gap: 5
   },
   box: {
-    backgroundColor: "white", padding: 16, borderRadius: 16, elevation: 5
+    backgroundColor: "white", padding: 16, borderRadius: 16, elevation: 5, marginBottom: 20
   },
   price: {
     fontWeight: "bold", fontSize: 18, textAlign: "center", marginBottom: 10
@@ -190,5 +253,11 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "white", fontWeight: "bold", fontSize: 16
+  },
+  resumenBox: {
+    backgroundColor: "#e0f7fa", padding: 15, borderRadius: 10, marginTop: 20
+  },
+  resumenTitle: {
+    fontWeight: "bold", fontSize: 16, marginBottom: 10
   },
 });
